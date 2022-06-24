@@ -111,8 +111,6 @@ mlp <- function(data = data, formula = formula, engine = "nnet", mode = "classif
 #'
 #' @export
 
-
-
 decisionTree <- function(data = data, formula = formula, engine = "glm", mode = "classification"){
   result <- parsnip::decision_tree() %>%
     parsnip::set_engine("rpart") %>%
@@ -120,6 +118,29 @@ decisionTree <- function(data = data, formula = formula, engine = "glm", mode = 
     parsnip::fit(diabetes~., data = diabetes_train)
 
 
+
+  return(result)
+}
+
+#' svm
+#'
+#' @details
+#' support vector machines 알고리즘 함수.
+#' support vector machines 기계 학습의 분야 중 하나로 패턴 인식, 자료 분석을 위한 지도 학습 모델
+#'
+#' @param data  분석에 사용할 변수들이 포함된 데이터
+#' @param engine  engine
+#' @param mode  mode
+#'
+#' @import parsnip
+#'
+#' @export
+
+mlp <- function(data = data, formula = formula, engine = "LiblineaR", mode = "classification"){
+  result <- parsnip::svm_linear(cost = 1) %>%
+    parsnip::set_engine(engine = engine) %>%
+    parsnip::set_mode(mode = mode) %>%
+    parsnip::fit(formula = eval(parse(text = formula)), data = data)
 
   return(result)
 }
