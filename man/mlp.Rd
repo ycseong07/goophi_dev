@@ -4,19 +4,7 @@
 \alias{mlp}
 \title{neural network}
 \usage{
-mlp(
-  data = data,
-  formula = formula,
-  engine = "LiblineaR",
-  mode = "classification"
-)
-
-mlp(
-  data = data,
-  formula = formula,
-  engine = "LiblineaR",
-  mode = "classification"
-)
+mlp(data = data, formula = formula, engine = "nnet", mode = "classification")
 }
 \arguments{
 \item{data}{분석에 사용할 변수들이 포함된 데이터}
@@ -27,15 +15,10 @@ mlp(
 }
 \description{
 neural network
-
-svm
 }
 \details{
 neural network 알고리즘 함수.
 neural network 모델은 생물학적인 뉴런을 수학적으로 모델링한 것.
 여러개의 뉴런으로부터 입력값을 받아서 세포체에 저장하다가 자신의 용량을 넘어서면 외부로 출력값을 내보내는 것처럼,
 인공신경망 뉴런은 여러 입력값을 받아서 일정 수준이 넘어서면 활성화되어 출력값을 내보낸다.
-
-support vector machines 알고리즘 함수.
-support vector machines 기계 학습의 분야 중 하나로 패턴 인식, 자료 분석을 위한 지도 학습 모델
 }

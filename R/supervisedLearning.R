@@ -136,7 +136,7 @@ decisionTree <- function(data = data, formula = formula, engine = "glm", mode = 
 #'
 #' @export
 
-mlp <- function(data = data, formula = formula, engine = "LiblineaR", mode = "classification"){
+svm <- function(data = data, formula = formula, engine = "LiblineaR", mode = "classification"){
   result <- parsnip::svm_linear(cost = 1) %>%
     parsnip::set_engine(engine = engine) %>%
     parsnip::set_mode(mode = mode) %>%

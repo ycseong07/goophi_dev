@@ -53,7 +53,7 @@ nrow(diabetes_test)
 #  parsnip::fit(diabetes~., data = diabetes_train)
 
 f <- "diabetes~."
-fitted_svm_model <- goophi::knn(data = diabetes_train, formula = f)
+fitted_svm_model <- goophi::svm(data = diabetes_train, formula = f)
 
 fitted_svm_model
 
