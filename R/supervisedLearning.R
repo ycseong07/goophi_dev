@@ -144,3 +144,27 @@ svm <- function(data = data, formula = formula, engine = "LiblineaR", mode = "cl
 
   return(result)
 }
+
+#' xgboost
+#'
+#' @details
+#' xgboost 알고리즘 함수.
+#' xgboost는 Extreme Gradient Boosting의 약자.
+#' Gradient Boost 알고리즘을 병렬 학습이 지원되도록 구현한 라이브러리
+#'
+#' @param data  분석에 사용할 변수들이 포함된 데이터
+#' @param engine  engine
+#' @param mode  mode
+#'
+#' @import parsnip
+#'
+#' @export
+
+xgboost <- function(data = data, formula = formula, engine = "xgboost", mode = "classification"){
+  result <- parsnip::boost_tree(trees = 15) %>%
+    parsnip::set_engine(engine = engine) %>%
+    parsnip::set_mode(mode = mode) %>%
+    parsnip::fit(formula = eval(parse(text = formula)), data = data)
+
+  return(result)
+}
