@@ -1,144 +1,128 @@
-## https://github.com/rahul-raoniar/Rahul_Raoniar_Blogs/tree/main/Modeling%20Logistic%20Regression%20using%20Tidymodels%20Library%20in%20R
+## Workflow example (Classification) ##
 
-## ML workflow에 따라 함수를 만들고 테스트하기 위한 위한 참고용 스크립트입니다.
+## 유저로부터 받는 입력은 camel case,
+##예시로 사용한 변수 및 snake case로 작성된 dependencies의 함수명은 snake case로 표기합니다.
 
-library(mlbench)
+
+## data import
+
 library(tidymodels)
-library(tibble)
+library(dplyr)
+library(recipes)
+library(parsnip)
+library(tune)
+library(rsample)
+library(vip)
+library(goophi)
 
-#### import data ####
+set.seed(1234)
 
-## data frame to tibble
-data(PimaIndiansDiabetes2)
-PimaIndiansDiabetes2 <- tibble::as_tibble(PimaIndiansDiabetes2)
+## data import
+data(titanic_train, package = "titanic")
 
-## view the structures of data
-glimpse(PimaIndiansDiabetes2)
-str(PimaIndiansDiabetes2)
+cleaned_data <- tibble::as_tibble(titanic_train) %>%
+  select(-c(PassengerId, Name, Cabin, Ticket)) %>%
+  mutate(across(where(is.character), factor)) %>%
+  mutate(Survived = as.factor(Survived ))
 
-#### data preprocessing ####
+## one-hot encoding
+rec <- recipe(Survived ~ ., data = cleaned_data) %>%
+  step_dummy(all_predictors(), -all_numeric())
 
-## removing NA values
-Diabetes <- na.omit(PimaIndiansDiabetes2)
-glimpse(Diabetes)
+rec_prep <- prep(rec)
 
-## check the levels of outcome
-levels(Diabetes$diabetes)
+cleaned_data <- bake(rec_prep, new_data = cleaned_data)
 
-## setting reference level
-Diabetes$diabetes <- relevel(Diabetes$diabetes, ref = "pos")
-levels(Diabetes$diabetes)
-
-#### 여기까지 door 에서 처리됐다고 가정 ####
-
-## Train-Test Split
-set.seed(123)
-
-diabetes_split <- initial_split(Diabetes,
-                                prop = 0.75,
-                                strata = diabetes)
-
-diabetes_train <- diabetes_split %>%
-  training()
-
-diabetes_test <- diabetes_split %>%
-  testing()
-
-nrow(diabetes_train)
-nrow(diabetes_test)
+## 여기까지 완료된 데이터가 전달된다고 가정 (one-hot encoding까지 되는지 확인 필요) ##
 
 
-#### Cross validation (추가예정) ####
+#### (1) Train-test split ####
 
-#### fitting model ####
+# target 변수를 사용자로부터 입력 받습니다
+targetVar <- "Survived"
 
-## fitting logistic
+# 아래 3 가지 data를 생성합니다.
+data_train <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[1]] # train data
+data_test <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[2]] # test data
+data_split <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[3]] # whole data with split information
 
-fitted_logistic_model<- parsnip::logistic_reg() %>%
-  parsnip::set_engine("glm") %>%
-  parsnip::set_mode("classification") %>%
-  parsnip::fit(diabetes~., data = diabetes_train)
+#### (2) Make recipe for CV ####
 
-f <- "diabetes~."
-fitted_logistic_model <- goophi::logisticRegression(data = diabetes_train, formula = f)
+# 아래 변수들을 사용자로부터 입력 받습니다
+imputation <- TRUE
+normalization <- TRUE
+pca <- FALSE ## need to fix warning
+formula <- "Survived ~ ."
+pcaThres <- "0.7"
 
-#### result ####
+# train data에 대한 전처리 정보가 담긴 recipe를 생성합니다.
+rec <- goophi::preprocessing(data = data_train,
+                             formula,
+                             imputationType = "mean",
+                             normalizationType = "range", # min-max normalization as default
+                             pcaThres = pcaThres,
+                             imputation = imputation,
+                             normalization = normalization,
+                             pca = pca)
+rec
 
-recipes::tidy(fitted_logistic_model)
+#### (3) Modeling ####
+## todo: make goophi to install dependencies when the engine is not installed
 
-tidy(fitted_logistic_model, exponentiate = TRUE)
+# engine, mode 사용자로부터 입력 받습니다
+engine = "ranger"
+mode = "classification"
 
-tidy(fitted_logistic_model, exponentiate = TRUE) %>%
-  filter(p.value < 0.05)
+# 사용자정의 ML 모델을 생성합니다
+model <- goophi::randomForest_phi(trees = tune(),
+                                  min_n = tune(),
+                                  mtry = tune(),
+                                  engine = engine,
+                                  mode = mode)
 
-## class prediction
-pred_class <- predict(fitted_logistic_model,
-                      new_data = diabetes_test,
-                      type = "class")
+model
 
-pred_class[1:5,]
+#### (4) Grid serach CV ####
 
-## Prediction Probabilities
-pred_proba <- predict(fitted_logistic_model,
-                      new_data = diabetes_test,
-                      type = "prob")
+# 모델에 사용되는 parameter들을 사용해 parameterGrid를 입력받습니다 (사용자로부터 parameter grid를 받는 방법 고민)
+parameterGrid <- dials::grid_regular(
+  min_n(range = c(10, 40)),
+  mtry(range = c(1, 5)),
+  trees(range = c(500, 2000)),
+  levels = 5)
+# trining data를 몇 개로 나눌지 입력받습니다.
+v <- 2
 
-## both
-diabetes_results <- diabetes_test %>%
-  select(diabetes) %>%
-  bind_cols(pred_class, pred_proba)
-
-diabetes_results[1:5, ]
-
-
-## confusion matrix
-conf_mat(diabetes_results, truth = diabetes,
-         estimate = .pred_class)
+# parameter grid를 적용한 cross validation을 수행합니다
+grid_search_result <- goophi::gridSerachCV(rec = rec,
+                           model = model,
+                           v = v,
+                           data = data_train,
+                           parameterGrid = parameterGrid
+)
+grid_search_result
 
 
-## accuracy
-accuracy(diabetes_results, truth = diabetes,
-         estimate = .pred_class)
+#### (5) Finalize model ####
 
-## sensitivity (Sensitivity = TP / FN+TP) == Recall
-sens(diabetes_results, truth = diabetes,
-     estimate = .pred_class)
+# 최종 모델 object를 생성합니다
+finalized <- goophi::fitBestModel(gridSearchResult = grid_search_result,
+                                  metric = "roc_auc",
+                                  model = model,
+                                  formula = formula,
+                                  trainingData = data_train,
+                                  splitedData = data_split)
 
-recall(diabetes_results, truth = diabetes,
-       estimate = .pred_class)
+final_model <- finalized[[1]]
+last_fitted_model <- finalized[[2]]
 
-## specificity (Specificity = TN/FP+TN.)
-spec(diabetes_results, truth = diabetes,
-     estimate = .pred_class)
+final_model
+last_fitted_model
 
-## precision (Precision = TP/TP+FP)
-precision(diabetes_results, truth = diabetes,
-          estimate = .pred_class)
 
-## F1 score
-f_meas(diabetes_results, truth = diabetes,
-       estimate = .pred_class)
+## 아래 부분까지 문제가 없다면 함수화를 마무리합니다
 
-## kappa
-kap(diabetes_results, truth = diabetes,
-    estimate = .pred_class)
+last_fitted_model %>% collect_metrics()
 
-## Matthews Correlation Coefficient (MCC)
-mcc(diabetes_results, truth = diabetes,
-    estimate = .pred_class)
 
-## combined reuslt
-custom_metrics <- metric_set(accuracy, sens, spec, precision, recall, f_meas, kap, mcc)
-custom_metrics(diabetes_results,
-               truth = diabetes,
-               estimate = .pred_class)
 
-## AUROC
-roc_auc(diabetes_results,
-        truth = diabetes,
-        .pred_pos)
-
-## ROC curve
-diabetes_results %>%
-  roc_curve(truth = diabetes, .pred_pos) %>%
-  autoplot()
