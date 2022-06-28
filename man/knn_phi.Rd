@@ -4,16 +4,9 @@
 \alias{knn_phi}
 \title{K-Nearest Neighbors}
 \usage{
-knn_phi(
-  formula = formula,
-  k = tune(),
-  engine = "kknn",
-  mode = "classification"
-)
+knn_phi(k = tune(), engine = "kknn", mode = "classification")
 }
 \arguments{
-\item{formula}{formula}
-
 \item{k}{k}
 
 \item{engine}{engine}
@@ -21,6 +14,8 @@ knn_phi(
 \item{mode}{mode}
 
 \item{data}{분석에 사용할 변수들이 포함된 데이터}
+
+\item{formula}{formula}
 }
 \description{
 K-Nearest Neighbors
