@@ -1,65 +1,123 @@
-## https://github.com/rahul-raoniar/Rahul_Raoniar_Blogs/tree/main/Modeling%20Logistic%20Regression%20using%20Tidymodels%20Library%20in%20R
+## Workflow example (Classification) ##
 
-library(mlbench)
+## 유저로부터 받는 입력은 camel case,
+##예시로 사용한 변수 및 snake case로 작성된 dependencies의 함수명은 snake case로 표기합니다.
+
+
+## data import
+
 library(tidymodels)
-library(tibble)
+library(dplyr)
+library(recipes)
+library(parsnip)
+library(tune)
+library(rsample)
+library(vip)
+library(goophi)
+
+set.seed(1234)
+
+## data import
+data(titanic_train, package = "titanic")
+
+cleaned_data <- tibble::as_tibble(titanic_train) %>%
+  select(-c(PassengerId, Name, Cabin, Ticket)) %>%
+  mutate(across(where(is.character), factor)) %>%
+  mutate(Survived = as.factor(Survived ))
+
+## one-hot encoding
+rec <- recipe(Survived ~ ., data = cleaned_data) %>%
+  step_dummy(all_predictors(), -all_numeric())
+
+rec_prep <- prep(rec)
+
+cleaned_data <- bake(rec_prep, new_data = cleaned_data)
+
+## 여기까지 완료된 데이터가 전달된다고 가정 (one-hot encoding까지 되는지 확인 필요) ##
 
 
-#### import data ####
+#### (1) Train-test split ####
 
-## data frame to tibble
-data(PimaIndiansDiabetes2)
-PimaIndiansDiabetes2 <- tibble::as_tibble(PimaIndiansDiabetes2)
+# target 변수를 사용자로부터 입력 받습니다
+targetVar <- "Survived"
 
-## view the structures of data
-glimpse(PimaIndiansDiabetes2)
-str(PimaIndiansDiabetes2)
+# 아래 3 가지 data를 생성합니다.
+data_train <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[1]] # train data
+data_test <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[2]] # test data
+data_split <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[3]] # whole data with split information
 
-#### data preprocessing ####
+#### (2) Make recipe for CV ####
 
-## removing NA values
-Diabetes <- na.omit(PimaIndiansDiabetes2)
-glimpse(Diabetes)
+# 아래 변수들을 사용자로부터 입력 받습니다
+imputation <- TRUE
+normalization <- TRUE
+pca <- FALSE ## need to fix warning
+formula <- "Survived ~ ."
+pcaThres <- "0.7"
 
-## check the levels of outcome
-levels(Diabetes$diabetes)
+# train data에 대한 전처리 정보가 담긴 recipe를 생성합니다.
+rec <- goophi::preprocessing(data = data_train,
+                             formula,
+                             imputationType = "mean",
+                             normalizationType = "range", # min-max normalization as default
+                             pcaThres = pcaThres,
+                             imputation = imputation,
+                             normalization = normalization,
+                             pca = pca)
+rec
 
-## setting reference level
-Diabetes$diabetes <- relevel(Diabetes$diabetes, ref = "pos")
-levels(Diabetes$diabetes)
+#### (3) Modeling ####
+## todo: make goophi to install dependencies when the engine is not installed
 
-## Train-Test Split
-set.seed(123)
+# engine, mode 사용자로부터 입력 받습니다
+engine = "kknn"
+mode = "classification"
 
-diabetes_split <- initial_split(Diabetes,
-                                prop = 0.75,
-                                strata = diabetes)
+# 사용자정의 ML 모델을 생성합니다
+model <- goophi::knn_phi(engine = engine,
+                         mode = mode)
 
-diabetes_train <- diabetes_split %>%
-  training()
+model
 
-diabetes_test <- diabetes_split %>%
-  testing()
+#### (4) Grid serach CV ####
 
-nrow(diabetes_train)
-nrow(diabetes_test)
+# 모델에 사용되는 parameter들을 사용해 parameterGrid를 입력받습니다 (사용자로부터 parameter grid를 받는 방법 고민)
+parameterGrid <- dials::grid_regular(
+  neighbors(range = c(5, 10)),
+  levels = 5)
+# trining data를 몇 개로 나눌지 입력받습니다.
+v <- 2
 
-## Cross validation (추가예정정)
+parameterGrid
 
-## fitting knn
-# fitted_knn_model <- parsnip::nearest_neighbor() %>%
-#  parsnip::set_engine("kknn") %>%
-#  parsnip::set_mode("classification") %>%
-#  parsnip::fit(diabetes~., data = diabetes_train) %>%
+# parameter grid를 적용한 cross validation을 수행합니다
 
-
-f <- "diabetes~."
-fitted_knn_model <- goophi::knn(data = diabetes_train, formula = f)
-
-fitted_knn_model
-
-dplyr::bind_cols(
-  parsnip::predict.model_fit(fitted_knn_model, diabetes_test),
-  parsnip::predict.model_fit(fitted_knn_model, diabetes_test, type = "prob")
+grid_search_result <- goophi::gridSerachCV(rec = rec,
+                                           model = model,
+                                           v = v,
+                                           data = data_train,
+                                           parameterGrid = parameterGrid
 )
+grid_search_result
 
+
+#### (5) Finalize model ####
+
+# 최종 모델 object를 생성합니다
+finalized <- goophi::fitBestModel(gridSearchResult = grid_search_result,
+                                  metric = "roc_auc",
+                                  model = model,
+                                  formula = formula,
+                                  trainingData = data_train,
+                                  splitedData = data_split)
+
+final_model <- finalized[[1]]
+last_fitted_model <- finalized[[2]]
+
+final_model
+last_fitted_model
+
+
+## 아래 부분까지 문제가 없다면 함수화를 마무리합니다
+
+last_fitted_model %>% collect_metrics()
