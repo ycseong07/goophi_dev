@@ -3,33 +3,22 @@
 export(decisionTree_phi)
 export(fitBestModel)
 export(gridSerachCV)
-<<<<<<< HEAD
-export(knn_phi)
-export(lightGbm_phi)
-=======
 export(kMeansClustering_phi)
 export(knn_phi)
 export(lightGbm_phi)
 export(linearRegression_phi)
->>>>>>> 8906c592ae2fe4dc324f2b903cdd54cb904a5190
 export(logisticRegression_phi)
 export(mlp_phi)
 export(naiveBayes_phi)
 export(preprocessing)
 export(randomForest_phi)
 export(trainTestSplit)
-<<<<<<< HEAD
 export(xgboost_phi)
-=======
 import(factoextra)
->>>>>>> 8906c592ae2fe4dc324f2b903cdd54cb904a5190
 import(kknn)
 import(parsnip)
 import(recipes)
 import(rsample)
-<<<<<<< HEAD
-=======
 import(stats)
->>>>>>> 8906c592ae2fe4dc324f2b903cdd54cb904a5190
 import(tune)
 import(workflows)

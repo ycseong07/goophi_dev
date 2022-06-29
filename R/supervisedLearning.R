@@ -210,7 +210,7 @@ lightGbm_phi <- function(engine = "lightgbm",
     learn_rate = tune(),
     sample_size = tune()
   ) %>%
-    parsnip::set_engine(engine = engine, objective = "reg:squarederror", verbose=-1) %>%
+    parsnip::set_engine(engine = engine) %>%
     parsnip::set_mode(mode = mode)
 
   return(result)
