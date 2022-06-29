@@ -70,12 +70,12 @@ rec
 ## todo: make goophi to install dependencies when the engine is not installed
 
 # engine, mode 사용자로부터 입력 받습니다
-engine = "rpart"
+engine = "glm"
 mode = "classification"
 
 # 사용자정의 ML 모델을 생성합니다
-model <- goophi::decisionTree_phi(engine = engine,
-                             mode = mode)
+model <- goophi::logisticRegression_phi(engine = engine,
+                                  mode = mode)
 
 model
 
@@ -83,9 +83,8 @@ model
 
 # 모델에 사용되는 parameter들을 사용해 parameterGrid를 입력받습니다 (사용자로부터 parameter grid를 받는 방법 고민)
 parameterGrid <- dials::grid_regular(
-  tree_depth(range = c(10, 30)),
-  min_n(range = c(2, 10)),
-  cost_complexity(range = c(0.01, 1)),
+  penalty(range = c(0.1, 1)),
+  mixture(range = c(2, 10)),
   levels = 5)
 # trining data를 몇 개로 나눌지 입력받습니다.
 v <- 2

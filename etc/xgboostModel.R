@@ -85,11 +85,11 @@ model
 parameterGrid <- dials::grid_regular(
   min_n(range = c(1, 5)),
   mtry(range = c(1, 5)),
-  trees(range = c(15, 20)),
+  trees(range = c(15, 30)),
   tree_depth(range = c(6, 10)),
-  learn_rate(range = c(0, 1)),
-  loss_reduction(range = c(0, 1)),
-  sample_size(range = c(1, 1)),
+  learn_rate(range = c(0.3, 1)),
+  loss_reduction(range = c(0.0, 1)),
+  sample_size(range = c(0.0, 1)),
   levels = 5)
 # trining data를 몇 개로 나눌지 입력받습니다.
 v <- 2

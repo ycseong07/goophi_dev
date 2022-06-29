@@ -70,12 +70,12 @@ rec
 ## todo: make goophi to install dependencies when the engine is not installed
 
 # engine, mode 사용자로부터 입력 받습니다
-engine = "rpart"
+engine = "lightgbm"
 mode = "classification"
 
 # 사용자정의 ML 모델을 생성합니다
-model <- goophi::decisionTree_phi(engine = engine,
-                             mode = mode)
+model <- goophi::lightGbm_phi(engine = engine,
+                                  mode = mode)
 
 model
 

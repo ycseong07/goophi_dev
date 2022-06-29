@@ -74,17 +74,21 @@ engine = "nnet"
 mode = "classification"
 
 # 사용자정의 ML 모델을 생성합니다
-model <- goophi::knn_phi(engine = engine,
+model <- goophi::mlp_phi(engine = engine,
                          mode = mode)
 
 model
-
 
 #### (4) Grid serach CV ####
 
 # 모델에 사용되는 parameter들을 사용해 parameterGrid를 입력받습니다 (사용자로부터 parameter grid를 받는 방법 고민)
 parameterGrid <- dials::grid_regular(
-  neighbors(range = c(5, 10)),
+  hidden_units(range = c(1, 10)),
+  penalty(range = c(0.0, 1)),
+  #dropout(range = c(5, 10)),
+  epochs(range = c(100, 500)),
+  #activation(range = c(5, 10)),
+  #learn_rate(range = c(5, 10)),
   levels = 5)
 # trining data를 몇 개로 나눌지 입력받습니다.
 v <- 2
