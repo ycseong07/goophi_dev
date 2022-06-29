@@ -200,15 +200,13 @@ naiveBayes_phi <- function(engine = "klaR",
 
 lightGbm_phi <- function(engine = "lightgbm",
                          mode = "classification"){
-
   result <- parsnip::boost_tree(
     mtry = tune(),
     trees = tune(),
     min_n = tune(),
     tree_depth = tune(),
     loss_reduction = tune(),
-    learn_rate = tune(),
-    sample_size = tune()
+    learn_rate = tune()
   ) %>%
     parsnip::set_engine(engine = engine) %>%
     parsnip::set_mode(mode = mode)
