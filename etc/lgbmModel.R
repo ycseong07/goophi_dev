@@ -14,6 +14,7 @@ library(tune)
 library(rsample)
 library(vip)
 library(goophi)
+library(treesnip)
 
 set.seed(1234)
 
@@ -22,9 +23,9 @@ set.seed(1234)
 data(titanic_train, package = "titanic")
 
 cleaned_data <- tibble::as_tibble(titanic_train) %>%
-  select(-c(PassengerId, Name, Cabin, Ticket)) %>%
-  mutate(across(where(is.character), factor)) %>%
-  mutate(Survived = as.factor(Survived ))
+  dplyr::select(-c(PassengerId, Name, Cabin, Ticket)) %>%
+  dplyr::mutate(across(where(is.character), factor)) %>%
+  dplyr::mutate(Survived = as.factor(Survived ))
 
 ## one-hot encoding
 rec <- recipe(Survived ~ ., data = cleaned_data) %>%
@@ -80,13 +81,19 @@ model <- goophi::lightGbm_phi(engine = engine,
 
 model
 
+
+
 #### (4) Grid serach CV ####
 
 # 모델에 사용되는 parameter들을 사용해 parameterGrid를 입력받습니다 (사용자로부터 parameter grid를 받는 방법 고민)
 parameterGrid <- dials::grid_regular(
-  tree_depth(range = c(10, 30)),
-  min_n(range = c(2, 10)),
-  cost_complexity(range = c(0.01, 1)),
+  mtry(range = c(1, 5)),
+  trees(range = c(100, 500)),
+  min_n(range = c(20, 50)),
+  tree_depth(range = c(1, 10)),
+  learn_rate(range = c(0.1, 1)),
+  loss_reduction(range = c(0, 10)),
+  #sample_size(range = c(0.01, 1)),
   levels = 5)
 # trining data를 몇 개로 나눌지 입력받습니다.
 v <- 2
