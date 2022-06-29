@@ -208,7 +208,7 @@ lightGbm_phi <- function(engine = "lightgbm",
     tree_depth = tune(),
     loss_reduction = tune(),
     learn_rate = tune(),
-    sample_size = tune()
+    #sample_size = tune()
     ) %>%
     parsnip::set_engine(engine = engine) %>%
     parsnip::set_mode(mode = mode)

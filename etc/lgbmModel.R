@@ -87,13 +87,13 @@ model
 
 # 모델에 사용되는 parameter들을 사용해 parameterGrid를 입력받습니다 (사용자로부터 parameter grid를 받는 방법 고민)
 parameterGrid <- dials::grid_regular(
-  mtry(range = c(1, 5)),
+  mtry(range = c(1, 10)),
   trees(range = c(100, 500)),
-  min_n(range = c(20, 50)),
-  tree_depth(range = c(1, 10)),
-  learn_rate(range = c(0.1, 1)),
-  loss_reduction(range = c(0, 10)),
-  #sample_size(range = c(0.01, 1)),
+  min_n(range = c(20, 60)),
+  tree_depth(range = c(0, 10)),
+  learn_rate = sample_prop(c(0.1, 0.5)),
+  loss_reduction(range = c(1, 10)),
+  #sample_size = sample_prop(c(0.5, 1)),
   levels = 5)
 # trining data를 몇 개로 나눌지 입력받습니다.
 v <- 2
