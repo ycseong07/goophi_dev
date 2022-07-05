@@ -17,7 +17,9 @@ library(ggfortify)
 library(ggdendro)
 library(goophi)
 
-cleaned_data <- read.csv("~/git/goophi/data/winequality-red.csv", sep = ";")
+cleaned_data <- read.csv("~/git/goophi_dev/data/winequality-red.csv", sep = ",")
+
+cleaned_data
 
 #### (1) Train-test split ####
 
@@ -53,11 +55,11 @@ rec
 ## todo: make goophi to install dependencies when the engine is not installed
 
 # engine, mode 사용자로부터 입력 받습니다
-engine = "ranger"
+engine = "lm"
 mode = "regression"
 
 # 사용자정의 ML 모델을 생성합니다
-model <- goophi::randomForest_phi(engine = engine,
+model <- goophi::linearRegression_phi(engine = engine,
                                   mode = mode)
 
 model
@@ -67,9 +69,8 @@ model
 
 # 모델에 사용되는 parameter들을 사용해 parameterGrid를 입력받습니다 (사용자로부터 parameter grid를 받는 방법 고민)
 parameterGrid <- dials::grid_regular(
-  min_n(range = c(10, 40)),
-  mtry(range = c(1, 5)),
-  trees(range = c(500, 2000)),
+  penalty(range = c(0, 0)),
+  mixture = sample_prop(c(0.0, 1.0)),
   levels = 5)
 # training data를 몇 개로 나눌지 입력받습니다.
 v <- 2
@@ -100,7 +101,52 @@ last_fitted_model <- finalized[[2]]
 final_model
 last_fitted_model
 
+typeof(last_fitted_model$.predictions[[1]]$.pred)
+
+last_fitted_model$.predictions[[1]][1]
 
 ## 아래 부분까지 문제가 없다면 함수화를 마무리합니다
 
 last_fitted_model %>% collect_metrics()
+
+# ROC Curve
+# options(yardstick.event_first = FALSE) # 오름차순으로 factor의 level 설정된다고 가정
+#
+# last_fitted_model %>%
+#   tune::collect_predictions() %>%
+#   dplyr::mutate(.pred_class = as.numeric(.pred_class)) %>%
+#   yardstick::roc_curve(Survived, .pred_class) %>%
+#   parsnip::autoplot()
+
+ames_test_res <- last_fitted_model$.predictions[[1]][1]
+ames_test_res <- bind_cols(ames_test_res, data_test %>% select(quality))
+ames_test_res
+
+# confusion matrix
+last_fitted_model %>%
+  tune::collect_predictions() %>%
+  ggplot(aes(x = quality, y = last_fitted_model$.predictions[[1]]$.pred)) + geom_abline(color = "gray50", lty = 2) + geom_point(alpha = 0.5) + coord_obs_pred()
+  #ggplot(aes(x = last_fitted_model$.predictions[[1]]$quality, y = last_fitted_model$.predictions[[1]]$.pred)) + geom_abline(color = "gray50", lty = 2) + geom_point(alpha = 0.5) + coord_obs_pred()
+
+# evaluation index
+
+ames_metrics <- metric_set(rmse, rsq, mae)
+ames_metrics(ames_test_res, truth = quality, estimate = .pred)
+
+# custom_metrics <- yardstick::metric_set(yardstick::accuracy,
+#                                         yardstick::sens,
+#                                         yardstick::spec,
+#                                         yardstick::precision,
+#                                         yardstick::recall,
+#                                         yardstick::f_meas,
+#                                         yardstick::kap,
+#                                         yardstick::mcc
+# )
+# custom_metrics(last_fitted_model %>%
+#                  tune::collect_predictions(),
+#                truth = data_test,
+#                estimate = 1)
+
+# custom_metrics
+
+

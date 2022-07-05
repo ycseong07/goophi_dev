@@ -116,11 +116,12 @@ last_fitted_model <- finalized[[2]]
 final_model
 last_fitted_model
 
-
 #### results ####
 
 # performance of final model
 last_fitted_model %>% collect_metrics()
+
+last_fitted_model[[5]]
 
 # ROC Curve
 options(yardstick.event_first = FALSE) # 오름차순으로 factor의 level 설정된다고 가정
