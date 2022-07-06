@@ -188,16 +188,50 @@ naiveBayes_phi <- function(engine = "klaR",
 }
 
 
-#' Light GBM
+#' XGBoost
 #'
 #' @details
-#' Light GBM
+#' XGBoost
 #' hyperparameters: mtry, min_n, tree_depth, loss_reduction, learn_rate, sample_size
 #'
 #' @param engine engine
 #' @param mode mode
 #'
 #' @import parsnip
+#' @import xgboost
+#'
+#' @export
+
+xgboost_phi <- function(engine = "xgboost",
+                         mode = "classification"){
+
+  result <- parsnip::boost_tree(
+    mtry = tune(),
+    trees = tune(),
+    min_n = tune(),
+    tree_depth = tune(),
+    loss_reduction = tune(),
+    learn_rate = tune(),
+    sample_size = tune()
+  ) %>%
+    parsnip::set_engine(engine = engine) %>%
+    parsnip::set_mode(mode = mode)
+
+  return(result)
+}
+
+#' Light GBM
+#'
+#' @details
+#' Light GBM
+#' install treesnip package by: remotes::install_github("curso-r/treesnip")
+#' hyperparameters: mtry, min_n, tree_depth, loss_reduction, learn_rate, sample_size
+#'
+#' @param engine engine
+#' @param mode mode
+#'
+#' @import parsnip
+#' @import treesnip
 #'
 #' @export
 
@@ -210,8 +244,7 @@ lightGbm_phi <- function(engine = "lightgbm",
     min_n = tune(),
     tree_depth = tune(),
     loss_reduction = tune(),
-    learn_rate = tune(),
-    #sample_size = tune()
+    learn_rate = tune()
     ) %>%
     parsnip::set_engine(engine = engine) %>%
     parsnip::set_mode(mode = mode)
