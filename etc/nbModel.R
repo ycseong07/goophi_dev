@@ -41,11 +41,12 @@ cleaned_data <- bake(rec_prep, new_data = cleaned_data)
 
 # target 변수를 사용자로부터 입력 받습니다
 targetVar <- "Survived"
+trainSetRatio <- "0.7"
 
 # 아래 3 가지 data를 생성합니다.
-data_train <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[1]] # train data
-data_test <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[2]] # test data
-data_split <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[3]] # whole data with split information
+data_train <- goophi::trainTestSplit(data = cleaned_data, target = targetVar, trainSetRatio)[[1]] # train data
+data_test <- goophi::trainTestSplit(data = cleaned_data, target = targetVar, trainSetRatio)[[2]] # test data
+data_split <- goophi::trainTestSplit(data = cleaned_data, target = targetVar, trainSetRatio)[[3]] # whole data with split information
 
 #### (2) Make recipe for CV ####
 
@@ -54,7 +55,6 @@ imputation <- TRUE
 normalization <- TRUE
 pca <- FALSE ## need to fix warning
 formula <- "Survived ~ ."
-pcaThres <- "0.7"
 
 # train data에 대한 전처리 정보가 담긴 recipe를 생성합니다.
 rec <- goophi::preprocessing(data = data_train,

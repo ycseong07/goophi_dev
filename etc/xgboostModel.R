@@ -39,11 +39,12 @@ cleaned_data <- bake(rec_prep, new_data = cleaned_data)
 
 # target 변수를 사용자로부터 입력 받습니다
 targetVar <- "Survived"
+trainSetRatio <- "0.7"
 
 # 아래 3 가지 data를 생성합니다.
-data_train <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[1]] # train data
-data_test <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[2]] # test data
-data_split <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[3]] # whole data with split information
+data_train <- goophi::trainTestSplit(data = cleaned_data, target = targetVar, trainSetRatio)[[1]] # train data
+data_test <- goophi::trainTestSplit(data = cleaned_data, target = targetVar, trainSetRatio)[[2]] # test data
+data_split <- goophi::trainTestSplit(data = cleaned_data, target = targetVar, trainSetRatio)[[3]] # whole data with split information
 
 #### (2) Make recipe for CV ####
 
@@ -52,13 +53,12 @@ imputation <- TRUE
 normalization <- TRUE
 pca <- FALSE ## need to fix warning
 formula <- "Survived ~ ."
-pcaThres <- "0.7"
 
 ####################
 
 #### data load regression ####
 
-# cleaned_data <- read.csv("~/git/goophi_dev/data/winequality-red.csv", sep = ",")
+# cleaned_data <- read.csv("~/git/goophi_dev/data/winequality-red.csv", sep = ";")
 #
 # cleaned_data
 #
@@ -66,11 +66,12 @@ pcaThres <- "0.7"
 #
 # # target 변수를 사용자로부터 입력 받습니다
 # targetVar <- "quality"
+# trainSetRatio <- "0.7"
 #
 # # 아래 3 가지 data를 생성합니다.
-# data_train <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[1]] # train data
-# data_test <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[2]] # test data
-# data_split <- goophi::trainTestSplit(data = cleaned_data, target = targetVar)[[3]] # whole data with split information
+# data_train <- goophi::trainTestSplit(data = cleaned_data, target = targetVar, trainSetRatio)[[1]] # train data
+# data_test <- goophi::trainTestSplit(data = cleaned_data, target = targetVar, trainSetRatio)[[2]] # test data
+# data_split <- goophi::trainTestSplit(data = cleaned_data, target = targetVar, trainSetRatio)[[3]] # whole data with split information
 #
 # #### (2) Make recipe for CV ####
 #
@@ -79,7 +80,6 @@ pcaThres <- "0.7"
 # normalization <- TRUE
 # pca <- FALSE ## need to fix warning
 # formula <- "quality ~ ."
-# pcaThres <- "0.7"
 
 ####################
 
@@ -102,6 +102,7 @@ rec
 # engine, mode 사용자로부터 입력 받습니다
 engine = "xgboost"
 mode = "classification"
+algo = paste0(mode,"_",engine)
 
 # 사용자정의 ML 모델을 생성합니다
 model <- goophi::xgboost_phi(engine = engine,
@@ -129,6 +130,7 @@ v <- 2
 # # engine, mode 사용자로부터 입력 받습니다
 # engine = "xgboost"
 # mode = "regression"
+# algo = paste0(mode,"_",engine)
 #
 # # 사용자정의 ML 모델을 생성합니다
 # model <- goophi::xgboost_phi(engine = engine,
@@ -174,16 +176,18 @@ finalized <- goophi::fitBestModel(gridSearchResult = grid_search_result,
                                   model = model,
                                   formula = formula,
                                   trainingData = data_train,
-                                  splitedData = data_split)
+                                  splitedData = data_split,
+                                  algo = algo)
 ####################
 
 #### regression ####
-finalized <- goophi::fitBestModel(gridSearchResult = grid_search_result,
-                                  metric = "rmse",
-                                  model = model,
-                                  formula = formula,
-                                  trainingData = data_train,
-                                  splitedData = data_split)
+# finalized <- goophi::fitBestModel(gridSearchResult = grid_search_result,
+#                                   metric = "rmse",
+#                                   model = model,
+#                                   formula = formula,
+#                                   trainingData = data_train,
+#                                   splitedData = data_split,
+#                                   algo = algo)
 ####################
 
 

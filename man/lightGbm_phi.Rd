@@ -16,5 +16,6 @@ Light GBM
 }
 \details{
 Light GBM
+install treesnip package by: remotes::install_github("curso-r/treesnip")
 hyperparameters: mtry, min_n, tree_depth, loss_reduction, learn_rate, sample_size
 }

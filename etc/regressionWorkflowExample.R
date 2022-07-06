@@ -17,7 +17,7 @@ library(ggfortify)
 library(ggdendro)
 library(goophi)
 
-cleaned_data <- read.csv("~/git/goophi_dev/data/winequality-red.csv", sep = ",")
+cleaned_data <- read.csv("~/git/goophi_dev/data/winequality-red.csv", sep = ";")
 
 cleaned_data
 

@@ -2,8 +2,10 @@
 % Please edit documentation in R/algorithms.R
 \name{xgboost_phi}
 \alias{xgboost_phi}
-\title{xgboost}
+\title{XGBoost}
 \usage{
+xgboost_phi(engine = "xgboost", mode = "classification")
+
 xgboost_phi(engine = "xgboost", mode = "classification")
 }
 \arguments{
@@ -12,9 +14,14 @@ xgboost_phi(engine = "xgboost", mode = "classification")
 \item{mode}{mode}
 }
 \description{
+XGBoost
+
 xgboost
 }
 \details{
+XGBoost
+hyperparameters: mtry, min_n, tree_depth, loss_reduction, learn_rate, sample_size
+
 xgboost 알고리즘 함수.
 xgboost는 Extreme Gradient Boosting의 약자.
 Gradient Boost 알고리즘을 병렬 학습이 지원되도록 구현한 라이브러리
