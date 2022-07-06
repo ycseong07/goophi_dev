@@ -1,11 +1,9 @@
-## Workflow example (Classification) ##
-
 ## 유저로부터 받는 입력은 camel case,
 ##예시로 사용한 변수 및 snake case로 작성된 dependencies의 함수명은 snake case로 표기합니다.
 
 
 ## data import
-
+library(tidyverse)
 library(tidymodels)
 library(dplyr)
 library(recipes)
@@ -13,6 +11,9 @@ library(parsnip)
 library(tune)
 library(rsample)
 library(vip)
+library(ggrepel)
+library(ggfortify)
+library(ggdendro)
 library(goophi)
 
 set.seed(1234)
@@ -119,8 +120,38 @@ last_fitted_model <- finalized[[2]]
 final_model
 last_fitted_model
 
-
-## 아래 부분까지 문제가 없다면 함수화를 마무리합니다
-
+# performance of final model
 last_fitted_model %>% collect_metrics()
 
+last_fitted_model[[5]]
+
+# ROC Curve
+options(yardstick.event_first = FALSE) # 오름차순으로 factor의 level 설정된다고 가정
+
+last_fitted_model %>%
+  tune::collect_predictions() %>%
+  dplyr::mutate(.pred_class = as.numeric(.pred_class)) %>%
+  yardstick::roc_curve(Survived, .pred_class) %>%
+  parsnip::autoplot()
+
+# confusion matrix
+last_fitted_model %>%
+  tune::collect_predictions() %>%
+  yardstick::conf_mat(Survived, .pred_class) %>%
+  autoplot(type = "heatmap")
+
+# evaluation index
+
+custom_metrics <- yardstick::metric_set(yardstick::accuracy,
+                                        yardstick::sens,
+                                        yardstick::spec,
+                                        yardstick::precision,
+                                        yardstick::recall,
+                                        yardstick::f_meas,
+                                        yardstick::kap,
+                                        yardstick::mcc
+)
+custom_metrics(last_fitted_model %>%
+                 tune::collect_predictions(),
+               truth = Survived,
+               estimate = .pred_class)

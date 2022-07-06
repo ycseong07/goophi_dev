@@ -51,6 +51,40 @@ rec <- goophi::preprocessing(data = data_train,
                              pca = pca)
 rec
 
+engine = "rpart"
+mode = "regression"
+
+# 사용자정의 ML 모델을 생성합니다
+model <- goophi::decisionTree_phi(engine = engine,
+                                  mode = mode)
+
+model
+
+#### (4) Grid serach CV ####
+
+# 모델에 사용되는 parameter들을 사용해 parameterGrid를 입력받습니다 (사용자로부터 parameter grid를 받는 방법 고민)
+parameterGrid <- dials::grid_regular(
+  tree_depth(range = c(10, 30)),
+  min_n(range = c(2, 10)),
+  cost_complexity = sample_prop(c(0.1, 0.5)),
+  levels = 5)
+# trining data를 몇 개로 나눌지 입력받습니다.
+v <- 2
+
+########
+
+parameterGrid
+
+# parameter grid를 적용한 cross validation을 수행합니다
+
+grid_search_result <- goophi::gridSerachCV(rec = rec,
+                                           model = model,
+                                           v = v,
+                                           data = data_train,
+                                           parameterGrid = parameterGrid
+)
+grid_search_result
+
 #### (3) Modeling ####
 ## todo: make goophi to install dependencies when the engine is not installed
 
