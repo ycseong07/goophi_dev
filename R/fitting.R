@@ -66,3 +66,4 @@ fitBestModel <- function(gridSearchResult, metric, model, formula, trainingData,
 
   return(list(finalModel, finalFittedModel))
 }
+

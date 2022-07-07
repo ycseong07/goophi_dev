@@ -15,11 +15,17 @@
 
 logisticRegression_phi <- function(engine = "glm",
                                    mode = "classification"){
+    result <- if(mode == 'classification'){
+      parsnip::logistic_reg(penalty = tune(),
+                            mixture = tune()) %>%
+      parsnip::set_engine(engine = engine) %>%
+      parsnip::set_mode(mode = mode)
+    }else{
+      parsnip::linear_reg() %>%
+      parsnip::set_engine(engine = engine, family = stats::binomial(link = "probit")) %>%
+      parsnip::set_mode(mode = mode)
+    }
 
-  result <- parsnip::logistic_reg(penalty = tune(),
-                                  mixture = tune()) %>%
-    parsnip::set_engine(engine = engine) %>%
-    parsnip::set_mode(mode = mode)
 
   return(result)
 }
@@ -123,10 +129,7 @@ mlp_phi <- function(engine = "nnet",
 
   result <- parsnip::mlp(hidden_units = tune(),
                          penalty = tune(),
-                         dropout = tune(),
-                         epochs = tune(),
-                         activation = tune(),
-                         learn_rate = tune()) %>%
+                         epochs = tune()) %>%
     parsnip::set_engine(engine = engine) %>%
     parsnip::set_mode(mode = mode)
 
@@ -242,6 +245,38 @@ lightGbm_phi <- function(engine = "lightgbm",
     tree_depth = tune(),
     loss_reduction = tune(),
     learn_rate = tune()
+    ) %>%
+    parsnip::set_engine(engine = engine) %>%
+    parsnip::set_mode(mode = mode)
+
+  return(result)
+}
+
+#' xgboost
+#'
+#' @details
+#' xgboost 알고리즘 함수.
+#' xgboost는 Extreme Gradient Boosting의 약자.
+#' Gradient Boost 알고리즘을 병렬 학습이 지원되도록 구현한 라이브러리
+#'
+#' @param engine  engine
+#' @param mode  mode
+#'
+#' @import parsnip
+#'
+#' @export
+
+xgboost_phi <- function(engine = "xgboost",
+                        mode = "classification"){
+
+  result <- parsnip::boost_tree(
+    mtry = tune(),
+    trees = tune(),
+    min_n = tune(),
+    tree_depth = tune(),
+    learn_rate = tune(),
+    loss_reduction = tune(),
+    sample_size = tune()
     ) %>%
     parsnip::set_engine(engine = engine) %>%
     parsnip::set_mode(mode = mode)
